@@ -6,7 +6,8 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
-    "types":["jest"]
+    "types":["jest"],
+    "strict": true
   },
   "include": [  "src/**/*",
   "**/*.spec.ts",
