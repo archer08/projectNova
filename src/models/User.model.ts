@@ -1,6 +1,36 @@
 import { Document, Types, Schema, model } from "mongoose";
 
-const UserSchema = new Schema(
+interface Address {
+  city: string;
+  state: string;
+  country: string;
+  street: string;
+  postalCode: string;
+}
+
+export interface UserDocument extends Document {
+  username: string;
+  age?: number;
+  role?: "user" | "admin";
+  email: string;
+  password: string;
+  address?: Address[];
+  phoneNumber: string;
+  accountStatus?: "active" | "inactive";
+  isOnline?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AddressSchema = new Schema<Address>({
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  country: { type: String, required: true },
+  street: { type: String, required: true },
+  postalCode: { type: String, required: true },
+});
+
+const UserSchema = new Schema<UserDocument>(
   {
     username: {
       type: String,
@@ -26,10 +56,7 @@ const UserSchema = new Schema(
       required: true,
       select: false,
     },
-    shoppingCart: [Object],
-    wishlist: [Object],
-    address: [Object],
-    orders: [Object],
+    address: [AddressSchema],
     phoneNumber: {
       type: String,
       required: true,
@@ -52,33 +79,6 @@ const UserSchema = new Schema(
   }
 );
 
-export interface UserDocument {
-  password: string;
-
-  _id?: Types.ObjectId;
-  username: string;
-  email?: string;
-  age?: number;
-  phoneNumber?: string;
-  shoppingCart?: Array<{ productId: Types.ObjectId; quantity: number }>;
-  role?: string;
-  wishlist?: Array<Types.ObjectId>;
-  address?: Array<{
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-  }>;
-  orders?: Array<{ orderId: Types.ObjectId; status: string }>;
-  accountStatus?: string;
-  isOnline?: boolean;
-}
-
-//   UserSchema.virtual("fullName").get(function () {
-//     return `${this.firstName} ${this.lastName}`;
-//   });
-
 UserSchema.index({ email: 1 });
 
-export const User = model("User", UserSchema);
+export const User = model<UserDocument>("User", UserSchema);

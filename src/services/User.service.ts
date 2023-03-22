@@ -1,35 +1,57 @@
-import { User, UserDocument } from "../models/user.model";
-import { hashPassword, comparePassword } from "../services/auth.service";
+import { User } from "../models/User.model";
+import { hashPassword } from "./Auth.service";
+import { LoggerService } from "./config.service";
 
-export const createUser = async (userData: UserDocument): Promise<UserDocument> => {
+export const createUser = async (userData: any): Promise<any> => {
+  const logger = new LoggerService();
+
+  // Hash the password before storing it
   const hashedPassword = await hashPassword(userData.password);
+
+  // Create the new user object
   const user = new User({
-    ...userData,
-    password: hashedPassword
+    username: userData.username,
+    age: userData.age,
+    role: userData.role,
+    email: userData.email,
+    password: hashedPassword,
+    address: userData.address,
+    phoneNumber: userData.phoneNumber,
+    accountStatus: userData.accountStatus,
+    isOnline: userData.isOnline,
   });
+
+  // Save the user to the database
   await user.save();
-  return user;
+
+  // Log the creation event with the user data
+  logger.log("User created", { user });
+
+  // Return the user object without the password field
+  const { password, ...userWithoutPassword } = user.toObject();
+  return userWithoutPassword;
 };
 
-export const loginUser = async (email: string, password: string): Promise<UserDocument | null> => {
-  const user = await User.findOne({ email }).select("+password");
-  if (!user) {
-    return null;
+interface GetUserQuery {
+  id?: string;
+  [key: string]: any;
+}
+
+export async function getUsers(query: GetUserQuery): Promise<any> {
+  const loggerService = new LoggerService();
+  try {
+    loggerService.log(`Getting users with query: ${JSON.stringify(query)}`);
+    const users = await User.find(query).select("-password");
+    users.forEach((user) => {
+      loggerService.log(
+        `Found user with id ${user._id}: ${JSON.stringify(user)}`
+      );
+    });
+    return users;
+  } catch (error) {
+    loggerService.error(
+      `Error getting users with query ${JSON.stringify(query)}: ${error}`
+    );
+    throw error;
   }
-  const isMatch = await comparePassword(password, user.password);
-  if (!isMatch) {
-    return null;
-  }
-  return user;
-};
-
-export const getUserById = async (id: string): Promise<UserDocument | null> => {
-  const user = await User.findById(id);
-  return user;
-};
-
-export const deleteUser = async (userId: string): Promise<boolean> => {
-  const result = await User.deleteOne({ _id: userId });
-  return result.deletedCount === 1;
-};
-
+}

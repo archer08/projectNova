@@ -1,4 +1,4 @@
-const { createLogger, format, transports } = require('winston');
+const { createLogger, format, transports } = require("winston");
 const { combine, timestamp, label, printf } = format;
 
 const myFormat = printf(({ level, message, label, timestamp }) => {
@@ -6,17 +6,11 @@ const myFormat = printf(({ level, message, label, timestamp }) => {
 });
 
 const logger = createLogger({
-  format: combine(
-    label({ label: 'my-app' }),
-    timestamp(),
-    myFormat
-  ),
+  format: combine(label({ label: "my-app" }), timestamp(), myFormat),
   transports: [
     new transports.Console(),
-    new transports.File({ filename: 'combined.log' })
-  ]
+    new transports.File({ filename: "combined.log" }),
+  ],
 });
-
-
 
 export default logger;
